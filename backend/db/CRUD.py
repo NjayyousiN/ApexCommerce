@@ -1,46 +1,53 @@
 from sqlalchemy.orm import Session
-from db.models import Customer, Seller, Item, Order
+from db.models import User, Item, Order, user_item_association
 from typing import Optional
 
-# Create a new customer
-def create_customer(session: Session, name: str, email: str, phoneNumber: str, address: str, password: str) -> Customer:
-    new_customer = Customer(name=name, email=email, phoneNumber=phoneNumber, address=address, password=password)
-    session.add(new_customer)
+# Create a new user
+def create_user(session: Session, name: str, email: str, phoneNumber: str, address: str, password: str) -> User:
+    new_user = User(name=name, email=email, phoneNumber=phoneNumber, address=address, password=password)
+    session.add(new_user)
     session.commit()
-    session.refresh(new_customer)
-    return new_customer
-
-# Create a new seller
-def create_seller(session: Session, name: str, email: str, phone_number: str, address: str) -> Seller:
-    new_seller = Seller(name=name, email=email, phone_number=phone_number, address=address)
-    session.add(new_seller)
-    session.commit()
-    session.refresh(new_seller)
-    return new_seller
+    session.refresh(new_user)
+    return new_user
 
 # Create a new item
-def create_item(session: Session, rating: float, category: str, item_desc: str, stock: int, item_pic: str, reviews: str, seller_id: int) -> Item:
-    new_item = Item(rating=rating, category=category, item_desc=item_desc, stock=stock, item_pic=item_pic, reviews=reviews, seller_id=seller_id)
+def create_item(session: Session, item_name: str, category: str, itemDesc: str, stock: int, itemPic: str, reviews: Optional[str] = None, rating: Optional[float] = None) -> Item:
+    new_item = Item(item_name=item_name, rating=rating, category=category, itemDesc=itemDesc, stock=stock, itemPic=itemPic, reviews=reviews)
     session.add(new_item)
     session.commit()
     session.refresh(new_item)
     return new_item
 
 # Create a new order
-def create_order(session: Session, order_number: str, status: str, delivery_date: str, items: str, customer_id: int) -> Order:
-    new_order = Order(order_number=order_number, status=status, delivery_date=delivery_date, items=items, customer_id=customer_id)
+def create_order(session: Session, orderNumber: str, status: str, deliveryDate: str, items: str, userId: int) -> Order:
+    new_order = Order(orderNumber=orderNumber, status=status, deliveryDate=deliveryDate, items=items, userId=userId)
     session.add(new_order)
     session.commit()
     session.refresh(new_order)
     return new_order
 
-# Read all customers
-def read_customers(session: Session) -> list[Customer]:
-    return session.query(Customer).all()
+# Add an item to a user
+def add_item_to_user(session: Session, id: int, itemId: int) -> Optional[User]:
+    user = session.query(User).filter(User.id == id).first()
+    item = session.query(Item).filter(Item.itemId == itemId).first()
+    if user and item:
+        user.items.append(item)
+        session.commit()
+        session.refresh(user)
+    return user
 
-# Read all sellers
-def read_sellers(session: Session) -> list[Seller]:
-    return session.query(Seller).all()
+# Add an item to an order
+# def add_item_to_order(session: Session, order_id: int, item_id: int) -> Optional[Order]:
+#     order = session.query(Order).filter(Order.id == order_id).first()
+#     if order:
+#         order.items += f",{item_id}"
+#         session.commit()
+#         session.refresh(order)
+#     return order
+
+# Read all users
+def read_users(session: Session) -> list[User]:
+    return session.query(User).all()
 
 # Read all items
 def read_items(session: Session) -> list[Item]:
@@ -50,107 +57,104 @@ def read_items(session: Session) -> list[Item]:
 def read_orders(session: Session) -> list[Order]:
     return session.query(Order).all()
 
-# Read a customer by ID
-def read_customer_by_id(session: Session, id: int) -> Optional[Customer]:
-    return session.query(Customer).filter(Customer.id == id).first()
+# Read a user by ID
+def read_user_by_id(session: Session, id: int) -> Optional[User]:
+    return session.query(User).filter(User.id == id).first()
 
-# Read a seller by ID
-def read_seller_by_id(session: Session, id: int) -> Optional[Seller]:
-    return session.query(Seller).filter(Seller.id == id).first()
-
-# Read a customer by email
-def read_customer_by_email(session: Session, email: str) -> Optional[Customer]:
-    return session.query(Customer).filter(Customer.email == email).first()
-
-# Read a seller by email
-def read_seller_by_email(session: Session, email: str) -> Optional[Seller]:
-    return session.query(Seller).filter(Seller.email == email).first()
+# Read a user by email
+def read_user_by_email(session: Session, email: str) -> Optional[User]:
+    return session.query(User).filter(User.email == email).first()
 
 # Read an item by ID
-def read_item_by_id(session: Session, item_id: int) -> Optional[Item]:
-    return session.query(Item).filter(Item.id == item_id).first()
+def read_item_by_id(session: Session, itemId: int) -> Optional[Item]:
+    return session.query(Item).filter(Item.itemId == itemId).first()
+
+# Read all items by userId
+def read_items_by_userId(session: Session, userId: int) -> list[Item]:
+    user = session.query(User).filter(User.id == userId).first()
+
+    if user:
+        # Join the User and Item models using the user_item_association table
+        items = (
+            session.query(Item)
+            .join(user_item_association, Item.itemId == user_item_association.c.item_id)
+            .filter(user_item_association.c.user_id == userId)
+            .all()
+        )
+        return items
+    else:
+        return []    
+
+# Read items by category
+def read_items_by_category(session: Session, category: str) -> list[Item]:
+    return session.query(Item).filter(Item.category == category).all()
 
 # Read an order by ID
-def read_order_by_id(session: Session, order_id: int) -> Optional[Order]:
-    return session.query(Order).filter(Order.id == order_id).first()
+def read_order_by_id(session: Session, orderId: int) -> Optional[Order]:
+    return session.query(Order).filter(Order.orderId == orderId).first()
 
-# Update a customer by ID
-def update_customer_by_id(session: Session, id: int, name: Optional[str] = None, email: Optional[str] = None, phoneNumber: Optional[str] = None, address: Optional[str] = None) -> Optional[Customer]:
-    customer = session.query(Customer).filter(Customer.id == id).first()
-    if customer:
-        if name: customer.name = name
-        if email: customer.email = email
-        if phoneNumber: customer.phoneNumber = phoneNumber
-        if address: customer.address = address
-        session.commit()
-        session.refresh(customer)
-    return customer
+# Read an order by userId
+def read_order_by_user(session: Session, userId: int) -> Optional[Order]:
+    return session.query(Order).filter(Order.userId == userId).first()
 
-# Update a seller by ID
-def update_seller_by_id(session: Session, id: int, name: Optional[str] = None, email: Optional[str] = None, phone_number: Optional[str] = None, address: Optional[str] = None) -> Optional[Seller]:
-    seller = session.query(Seller).filter(Seller.id == id).first()
-    if seller:
-        if name: seller.name = name
-        if email: seller.email = email
-        if phone_number: seller.phone_number = phone_number
-        if address: seller.address = address
+# Update a user by ID
+def update_user_by_id(session: Session, id: int, name: Optional[str] = None, email: Optional[str] = None, phoneNumber: Optional[str] = None, address: Optional[str] = None) -> Optional[User]:
+    user = session.query(User).filter(User.id == id).first()
+    if user:
+        if name: user.name = name
+        if email: user.email = email
+        if phoneNumber: user.phoneNumber = phoneNumber
+        if address: user.address = address
         session.commit()
-        session.refresh(seller)
-    return seller
+        session.refresh(user)
+    return user
 
 # Update an item by ID
-def update_item_by_id(session: Session, item_id: int, rating: Optional[float] = None, category: Optional[str] = None, item_desc: Optional[str] = None, stock: Optional[int] = None, item_pic: Optional[str] = None, reviews: Optional[str] = None) -> Optional[Item]:
-    item = session.query(Item).filter(Item.id == item_id).first()
+def update_item_by_id(session: Session, item_name: str, itemId: int, rating: Optional[float] = None, category: Optional[str] = None, itemDesc: Optional[str] = None, stock: Optional[int] = None, itemPic: Optional[str] = None, reviews: Optional[str] = None) -> Optional[Item]:
+    item = session.query(Item).filter(Item.itemId == itemId).first()
     if item:
+        if item_name: item.item_name = item_name
         if rating: item.rating = rating
         if category: item.category = category
-        if item_desc: item.item_desc = item_desc
+        if itemDesc: item.itemDesc = itemDesc
         if stock: item.stock = stock
-        if item_pic: item.item_pic = item_pic
+        if itemPic: item.itemPic = itemPic
         if reviews: item.reviews = reviews
         session.commit()
         session.refresh(item)
     return item
 
 # Update an order by ID
-def update_order_by_id(session: Session, order_id: int, order_number: Optional[str] = None, status: Optional[str] = None, delivery_date: Optional[str] = None, items: Optional[str] = None) -> Optional[Order]:
-    order = session.query(Order).filter(Order.id == order_id).first()
+def update_order_by_id(session: Session, orderId: int, orderNumber: str, status: Optional[str] = None, deliveryDate: Optional[str] = None, items: Optional[str] = None) -> Optional[Order]:
+    order = session.query(Order).filter(Order.orderId == orderId).first()
     if order:
-        if order_number: order.order_number = order_number
+        if orderNumber: order.orderNumber = orderNumber
         if status: order.status = status
-        if delivery_date: order.delivery_date = delivery_date
+        if deliveryDate: order.deliveryDate = deliveryDate
         if items: order.items = items
         session.commit()
         session.refresh(order)
     return order
 
-# Delete a customer by ID
-def delete_customer_by_id(session: Session, id: int) -> Optional[Customer]:
-    customer = session.query(Customer).filter(Customer.id == id).first()
-    if customer:
-        session.delete(customer)
+# Delete a user by ID
+def delete_user_by_id(session: Session, id: int) -> Optional[User]:
+    user = session.query(User).filter(User.id == id).first()
+    if user:
+        session.delete(user)
         session.commit()
-    return customer
-
-# Delete a seller by ID
-def delete_seller_by_id(session: Session, id: int) -> Optional[Seller]:
-    seller = session.query(Seller).filter(Seller.id == id).first()
-    if seller:
-        session.delete(seller)
-        session.commit()
-    return seller
+    return user
 
 # Delete an item by ID
-def delete_item_by_id(session: Session, item_id: int) -> Optional[Item]:
-    item = session.query(Item).filter(Item.id == item_id).first()
+def delete_item_by_id(session: Session, itemId: int) -> Optional[Item]:
+    item = session.query(Item).filter(Item.itemId == itemId).first()
     if item:
         session.delete(item)
         session.commit()
     return item
 
 # Delete an order by ID
-def delete_order_by_id(session: Session, order_id: int) -> Optional[Order]:
-    order = session.query(Order).filter(Order.id == order_id).first()
+def delete_order_by_id(session: Session, orderId: int) -> Optional[Order]:
+    order = session.query(Order).filter(Order.orderId == orderId).first()
     if order:
         session.delete(order)
         session.commit()
