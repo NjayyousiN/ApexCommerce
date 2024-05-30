@@ -44,7 +44,6 @@ class Item(Base):
 class Order(Base):
     __tablename__ = 'orders'
     orderId = Column(Integer, primary_key=True, unique=True, nullable=False)
-    orderNumber = Column(String, nullable=False)
     status = Column(Enum(OrderStatus), default=OrderStatus.confirmed)
     deliveryDate = Column(Date, default=datetime.now() + timedelta(days=7))
     items = Column(ARRAY(Integer), nullable=False)
