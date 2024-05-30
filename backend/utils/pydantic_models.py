@@ -7,12 +7,12 @@ class AuthRequest(BaseModel):
     password: str
 
 # This model is used to validate the request body for the /customers endpoint
-class CustomerBody(BaseModel):
+class UserBody(BaseModel):
     id: Optional[int] = None
     name: str
-    email: str
     phoneNumber: str
     address: str
+    email: str
     password: Optional[str] = None
 
     class Config:
