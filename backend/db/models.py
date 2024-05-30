@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Date, Enum, Text, ARRAY
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Enum, Text, ARRAY
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 from datetime import datetime, timedelta
@@ -18,12 +18,14 @@ class Customer(Base):
     phoneNumber = Column(String)
     address = Column(String)
     email = Column(String, nullable=False)
+    password = Column(String, nullable=False)
 
 class Seller(Base):
     __tablename__ = 'sellers'
     id = Column(Integer, primary_key=True, unique=True, nullable=False)
     name = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False)
+    password = Column(String, nullable=False)
     rating = Column(Integer)
     phoneNumber = Column(String, nullable=False)
     address = Column(String)
@@ -50,9 +52,3 @@ class Order(Base):
     items = Column(ARRAY(Integer), nullable=False)
     customerId = Column(Integer, ForeignKey('customers.id'), nullable=False)
     customer = relationship("Customer")
-
-# Connection URL 
-DATABASE_URL = "postgresql+psycopg2://nasser:pass@localhost/apexcommerce"
-
-engine = create_engine(DATABASE_URL)
-Base.metadata.create_all(engine)
