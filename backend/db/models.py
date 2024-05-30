@@ -32,6 +32,7 @@ class User(Base):
 class Item(Base):
     __tablename__ = 'items'
     itemId = Column(Integer, primary_key=True, unique=True, nullable=False)
+    item_name = Column(String, nullable=False)
     rating = Column(Integer)
     category = Column(String, nullable=False)
     itemDesc = Column(Text, nullable=False)
