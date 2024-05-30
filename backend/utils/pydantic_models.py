@@ -27,6 +27,13 @@ class ItemBody(BaseModel):
     class Config:
         from_attributes = True
 
+# This model is used to validate the request body for the /orders endpoint
+class OrderBody(BaseModel):
+    userId: Optional[int] = None
+    items: list
+
+    class Config:
+        from_attributes = True
 # This model is used to validate the request body for the /auth endpoint
 class AuthRequest(BaseModel):
     email: str

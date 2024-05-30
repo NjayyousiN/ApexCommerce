@@ -4,8 +4,8 @@ from db.CRUD import (
     read_item_by_id,
     read_items,
     update_item_by_id,
-    read_items_by_userId,
-    read_items_by_category,
+    read_item_by_userId,
+    read_item_by_category,
     add_item_to_user,
 )
 from db.session import get_db
@@ -60,14 +60,14 @@ def get_item_by_id(itemId: int, db: Session = Depends(get_db)):
 # Get an item by userId
 @router.get("/user/{userId}", response_model=Response)
 def get_item_by_user(userId: int, db: Session = Depends(get_db)):
-    items = read_items_by_userId(db, userId)
+    items = read_item_by_userId(db, userId)
     items_data = [ItemBody.model_validate(item) for item in items]
     return Response(status=200, data={"items": items_data})
 
 # Get items by category
 @router.get("/category/{category}", response_model=Response)
 def get_items_by_category(category: str, db: Session = Depends(get_db)):
-    items = read_items_by_category(db, category)
+    items = read_item_by_category(db, category)
     items_data = [ItemBody.model_validate(item) for item in items]
     return Response(status=200, data={"items": items_data})
 
