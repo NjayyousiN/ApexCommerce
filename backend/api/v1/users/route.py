@@ -42,11 +42,11 @@ def create_new_user(user: UserBody, db: Session = Depends(get_db)):
     hashed_password = hash_password(user.password)
     new_user = create_user(
         db,
-        user.name,
-        user.email,
-        user.phoneNumber,
-        user.address,
-        hashed_password,
+        name=user.name,
+        email=user.email,
+        phoneNumber=user.phoneNumber,
+        address=user.address,
+        password=hashed_password,
     )
     if new_user:
         return Response(status=200, data=f"user {new_user.name} created successfully")
@@ -72,13 +72,7 @@ def get_user_by_id(id: int, db: Session = Depends(get_db)):
     if user:
         return Response(
             status=200,
-            data={
-                "id": user.id,
-                "name": user.name,
-                "email": user.email,
-                "phoneNumber": user.phoneNumber,
-                "address": user.address,
-            },
+            data={"user": UserBody.model_validate(user)},
         )
     else:
         raise HTTPException(status_code=404, detail="user not found")
@@ -88,7 +82,7 @@ def get_user_by_id(id: int, db: Session = Depends(get_db)):
 @router.put("/{id}", response_model=Response)
 def update_user(id: int, user: UserBody, db: Session = Depends(get_db)):
     updated_user = update_user_by_id(
-        db, id, user.name, user.email, user.phoneNumber, user.address
+        db, id, name=user.name, email=user.email, phoneNumber=user.phoneNumber, address=user.address
     )
     if updated_user:
         return Response(status=201, data=f"user {user.name} updated successfully")
