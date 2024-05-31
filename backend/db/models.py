@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, Date, Enum, Text, ARRAY
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, Date, Enum, Text, ARRAY, JSON
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 from datetime import datetime, timedelta
@@ -28,6 +28,7 @@ class User(Base):
     password = Column(String, nullable=False)
     rating = Column(Integer)
     items = relationship("Item", secondary=user_item_association, back_populates="users")
+    orders = relationship("Order", back_populates="users")
 
 class Item(Base):
     __tablename__ = 'items'
@@ -46,5 +47,6 @@ class Order(Base):
     orderId = Column(Integer, primary_key=True, unique=True, nullable=False)
     status = Column(Enum(OrderStatus), default=OrderStatus.confirmed)
     deliveryDate = Column(Date, default=datetime.now() + timedelta(days=7))
-    items = Column(ARRAY(Integer), nullable=False)
+    items = Column(JSON, nullable=False)
     userId = Column(Integer, ForeignKey('users.id'), nullable=False)
+    users = relationship("User", back_populates="orders")

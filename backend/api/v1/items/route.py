@@ -81,8 +81,8 @@ def update_item(itemId: int, item: ItemBody, db: Session = Depends(get_db)):
 
     updated_item = update_item_by_id(
         db,
-        itemId,
-        itemName=item.item_name,
+        itemId=itemId,
+        item_name=item.item_name,
         category=item.category,
         itemDesc=item.itemDesc,
         stock=item.stock,
@@ -118,4 +118,4 @@ def add_item_to_user_route(userId: int, itemId: int, db: Session = Depends(get_d
     if user:
         return Response(status=200, data=f"item {itemId} added to user {userId} successfully")
     else:
-        raise HTTPException(status_code=400, detail="item not added to user")
+        raise HTTPException(status_code=400, detail="item not added to user or user does not exist")

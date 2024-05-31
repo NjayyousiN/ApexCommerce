@@ -58,11 +58,8 @@ def create_new_user(user: UserBody, db: Session = Depends(get_db)):
 @router.get("/", response_model=Response)
 def get_all_users(db: Session = Depends(get_db)):
     users = read_users(db)
-    if users:
-        users_data = [UserBody.model_validate(user) for user in users]
-        return Response(status=200, data={"users": users_data})
-    else:
-        raise HTTPException(status_code=404, detail="No users found")
+    users_data = [UserBody.model_validate(user) for user in users]
+    return Response(status=200, data={"users": users_data})
 
 
 # Get a user by ID

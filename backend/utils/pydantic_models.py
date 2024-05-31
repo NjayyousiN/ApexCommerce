@@ -29,8 +29,9 @@ class ItemBody(BaseModel):
 
 # This model is used to validate the request body for the /orders endpoint
 class OrderBody(BaseModel):
+    orderId: Optional[int] = None
     userId: Optional[int] = None
-    items: list
+    items: list[ItemBody]
 
     class Config:
         from_attributes = True
@@ -43,4 +44,4 @@ class AuthRequest(BaseModel):
 # `data` can be a string, dictionary, or list
 class Response(BaseModel):
     status: int
-    data: str | dict | list
+    data: str | dict | list 

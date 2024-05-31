@@ -8,7 +8,7 @@ from utils.pydantic_models import AuthRequest, Response
 router = APIRouter()
 
 
-@router.post("/", response_model=dict)
+@router.post("/", response_model=Response)
 def authenticate(auth_data: AuthRequest, db=Depends(get_db)):
     user = read_user_by_email(db, auth_data.email)
     if not user:
