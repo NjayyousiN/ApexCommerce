@@ -1,3 +1,7 @@
+from fastapi import Security
+from fastapi import security
+from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 import jwt
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -23,5 +27,8 @@ def decode_access_token(token: str):
         return payload
     except jwt.ExpiredSignatureError:
         return {"error": "Token has expired", "status": 401}
-    except Exception:
+    except jwt.PyJWTError:
         return {"error": "Invalid token", "status": 401}
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Security(HTTPBearer())):
+    return decode_access_token(credentials.credentials)

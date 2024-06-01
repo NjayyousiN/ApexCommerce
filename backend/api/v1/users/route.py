@@ -1,3 +1,4 @@
+from utils.jwt_utils import get_current_user, create_access_token
 from db.CRUD import (
     create_user,
     read_users,
@@ -49,7 +50,8 @@ def create_new_user(user: UserBody, db: Session = Depends(get_db)):
         password=hashed_password,
     )
     if new_user:
-        return Response(status=200, data=f"user {new_user.name} created successfully")
+        token = create_access_token(data={"sub": new_user.id})
+        return Response(status=200, data={"message": f"User {new_user.name} created successfully", "token": token})
     else:
         raise HTTPException(status_code=400, detail="user not created")
 
@@ -77,7 +79,7 @@ def get_user_by_id(id: int, db: Session = Depends(get_db)):
 
 # Update a user by ID
 @router.put("/{id}", response_model=Response)
-def update_user(id: int, user: UserBody, db: Session = Depends(get_db)):
+def update_user(id: int, user: UserBody, db: Session = Depends(get_db), user_auth=Depends(get_current_user)):
     updated_user = update_user_by_id(
         db, id, name=user.name, email=user.email, phoneNumber=user.phoneNumber, address=user.address
     )

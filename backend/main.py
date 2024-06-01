@@ -9,7 +9,7 @@ app = FastAPI()
 
 # Import the routes
 app.include_router(auth_router, prefix="/api/v1/auth")
-app.include_router(users_router, prefix="/api/v1/customers")
+app.include_router(users_router, prefix="/api/v1/users")
 app.include_router(items_router, prefix="/api/v1/items")
 app.include_router(orders_router, prefix="/api/v1/orders")
 

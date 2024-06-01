@@ -1,5 +1,7 @@
 import os
 import shutil
+from typing import Annotated
+from utils.jwt_utils import get_current_user
 from db.CRUD import (
     create_item,
     delete_item_by_id,
@@ -21,12 +23,13 @@ router = APIRouter()
 # Create a new item
 @router.post("/", response_model=Response)
 def create_new_item(
-    category: str = Form(...),
-    item_name: str = Form(...),
-    itemDesc: str = Form(...),
-    stock: int = Form(...),
-    itemPic: UploadFile = File(...),
+    category: Annotated[str, Form(...)],
+    item_name: Annotated[str, Form(...)],
+    itemDesc: Annotated[str, Form(...)],
+    stock: Annotated[int, Form(...)],
+    itemPic: Annotated[UploadFile, File(...)],
     db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
 ):
     # Check for any missing required fields
     if not category or not item_name or not itemDesc or not stock or not itemPic:
@@ -36,17 +39,17 @@ def create_new_item(
     upload_dir = "uploads/"
     os.makedirs(upload_dir, exist_ok=True)
     file_location = os.path.join(upload_dir, itemPic.filename)
-    
+
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(itemPic.file, buffer)
-        
+
     new_item = create_item(
         db,
         item_name=item_name,
         category=category,
         itemDesc=itemDesc,
         stock=stock,
-        itemPic=file_location, # file path is saved in database
+        itemPic=file_location,  # file path is saved in database
     )
     if new_item:
         return Response(status=200, data=f"item {new_item.itemId} created successfully")
@@ -90,14 +93,16 @@ def get_items_by_category(category: str, db: Session = Depends(get_db)):
 
 # Update an item by ID
 @router.put("/{itemId}", response_model=Response)
-def update_item(  
-    itemId: int, 
-    category: str = Form(...),
-    item_name: str = Form(...),
-    itemDesc: str = Form(...),
-    stock: int = Form(...),
-    itemPic: UploadFile = File(...),
-    db: Session = Depends(get_db)):
+def update_item(
+    itemId: int,
+    category: Annotated[str, Form(...)],
+    item_name: Annotated[str, Form(...)],
+    itemDesc: Annotated[str, Form(...)],
+    stock: Annotated[int, Form(...)],
+    itemPic: Annotated[UploadFile, File(...)],
+    db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
+):
     # Check if the item exists
     itemExists = True if read_item_by_id(db, itemId) else False
     if not itemExists:
@@ -107,7 +112,7 @@ def update_item(
     upload_dir = "uploads/"
     os.makedirs(upload_dir, exist_ok=True)
     file_location = os.path.join(upload_dir, itemPic.filename)
-    
+
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(itemPic.file, buffer)
 
@@ -118,7 +123,7 @@ def update_item(
         category=category,
         itemDesc=itemDesc,
         stock=stock,
-        itemPic=file_location, # file path is updated in database
+        itemPic=file_location,  # file path is updated in database
     )
     if updated_item:
         return Response(
@@ -130,7 +135,9 @@ def update_item(
 
 # Delete an item by ID
 @router.delete("/{itemId}", response_model=Response)
-def delete_item(itemId: int, db: Session = Depends(get_db)):
+def delete_item(
+    itemId: int, db: Session = Depends(get_db), user_auth=Depends(get_current_user)
+):
     # Check if the item exists
     itemExists = True if read_item_by_id(db, itemId) else False
     if not itemExists:
@@ -147,7 +154,12 @@ def delete_item(itemId: int, db: Session = Depends(get_db)):
 
 # Add an item to a user
 @router.post("/add-item/{userId}/{itemId}", response_model=Response)
-def add_item_to_user_route(userId: int, itemId: int, db: Session = Depends(get_db)):
+def add_item_to_user_route(
+    userId: int,
+    itemId: int,
+    db: Session = Depends(get_db),
+    user_auth=Depends(get_current_user),
+):
     itemExists = True if read_item_by_id(db, itemId) else False
     if not itemExists:
         raise HTTPException(status_code=404, detail="Item not found")
