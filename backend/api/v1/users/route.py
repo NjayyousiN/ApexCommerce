@@ -1,4 +1,5 @@
 from utils.jwt_utils import get_current_user, create_access_token
+from utils.api_key_utils import verifyRequestAPIKey
 from db.CRUD import (
     create_user,
     read_users,
@@ -58,7 +59,7 @@ def create_new_user(user: UserBody, db: Session = Depends(get_db)):
 
 # Get all users
 @router.get("/", response_model=Response)
-def get_all_users(db: Session = Depends(get_db)):
+def get_all_users(db: Session = Depends(get_db), admin_auth = Depends(verifyRequestAPIKey)):
     users = read_users(db)
     users_data = [UserBody.model_validate(user) for user in users]
     return Response(status=200, data={"users": users_data})
@@ -66,7 +67,7 @@ def get_all_users(db: Session = Depends(get_db)):
 
 # Get a user by ID
 @router.get("/{id}", response_model=Response)
-def get_user_by_id(id: int, db: Session = Depends(get_db)):
+def get_user_by_id(id: int, db: Session = Depends(get_db), admin_auth = Depends(verifyRequestAPIKey)):
     user = read_user_by_id(db, id)
     if user:
         return Response(
@@ -91,7 +92,7 @@ def update_user(id: int, user: UserBody, db: Session = Depends(get_db), user_aut
 
 # Delete a user by ID
 @router.delete("/{id}", response_model=Response)
-def delete_user(id: int, db: Session = Depends(get_db)):
+def delete_user(id: int, db: Session = Depends(get_db), admin_auth = Depends(verifyRequestAPIKey)):
     deleted_user = delete_user_by_id(db, id)
     if deleted_user:
         return Response(

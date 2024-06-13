@@ -75,7 +75,7 @@ def get_item_by_id(itemId: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Item not found")
 
 
-# Get an item by userId
+# Get items by userId
 @router.get("/user/{userId}", response_model=Response)
 def get_item_by_user(userId: int, db: Session = Depends(get_db)):
     items = read_item_by_userId(db, userId)

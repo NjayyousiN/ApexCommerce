@@ -3,6 +3,7 @@ from api.v1.auth.route import router as auth_router
 from api.v1.users.route import router as users_router
 from api.v1.items.route import router as items_router
 from api.v1.orders.route import router as orders_router
+from middleware.authRequest import JWTMiddleware
 
 # Create a FastAPI instance
 app = FastAPI()
